@@ -192,7 +192,7 @@ type alias VertexGetter coordinates =
 invertPoint : Point3d.Point3d units coordinates -> Point3d.Point3d units coordinates
 invertPoint p =
     let
-        ( y, x, z ) =
+        ( x, y, z ) =
             ( Point3d.xCoordinate p, Point3d.yCoordinate p, Point3d.zCoordinate p )
     in
     Point3d.xyz (Quantity.negate x) (Quantity.negate y) (Quantity.negate z)
