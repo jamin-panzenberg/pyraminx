@@ -18,6 +18,7 @@ import Quantity exposing (Quantity)
 import Random
 import Scene3d
 import Scene3d.Material as Material
+import Search exposing (breadthFirst, solve)
 import SketchPlane3d
 import Triangle2d
 import Triangle3d
@@ -29,6 +30,7 @@ type alias Model =
     , orbiting : Bool -- Whether the mouse button is currently down
     , windowSize : ( Int, Int )
     , pyraminx : Pyraminx.Pyraminx
+    , movesTakenToSolve : List Pyraminx.Move
     }
 
 
@@ -40,6 +42,7 @@ type Msg
     | Moved Pyraminx.Move
     | Scramble
     | Scrambled (List Pyraminx.Move)
+    | Solve
 
 
 init : () -> ( Model, Cmd Msg )
@@ -49,6 +52,7 @@ init () =
       , orbiting = False
       , windowSize = ( 700, 700 )
       , pyraminx = Pyraminx.solved
+      , movesTakenToSolve = []
       }
     , Cmd.none
     )
@@ -107,6 +111,21 @@ update message model =
 
         Scrambled moves ->
             ( { model | pyraminx = List.foldr (\move p -> Pyraminx.move p move) model.pyraminx moves }, Cmd.none )
+
+        Solve ->
+            let
+                ( maybeNode, _ ) =
+                    solve (breadthFirst (Pyraminx.problem model.pyraminx))
+
+                movesTakenToSolve =
+                    case maybeNode of
+                        Nothing ->
+                            []
+
+                        Just node ->
+                            Tuple.first node.state
+            in
+            ( { model | movesTakenToSolve = movesTakenToSolve }, Cmd.none )
 
 
 {-| Use movementX and movementY for simplicity (don't need to store initial
@@ -242,6 +261,10 @@ view model =
     { title = "Pyraminx"
     , body =
         [ Html.div [] [ Html.button [ Html.Events.onClick Scramble ] [ Html.text "Scramble" ] ]
+        , Html.div []
+            [ Html.button [ Html.Events.onClick Solve ] [ Html.text "Solve" ]
+            , Html.text (model.movesTakenToSolve |> List.map Pyraminx.moveString |> String.join ", ")
+            ]
         , Html.div []
             ([ Pyraminx.moveL
              , Pyraminx.moveLI

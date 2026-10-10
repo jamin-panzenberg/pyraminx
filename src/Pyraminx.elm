@@ -1,5 +1,6 @@
-module Pyraminx exposing (Color(..), Face, Move, Pyraminx, bottomFace, faceColorsCcw, frontFace, leftFace, move, moveB, moveBI, moveL, moveLI, moveR, moveRI, moveString, moveT, moveTI, rightFace, solved, moveGenerator)
+module Pyraminx exposing (Color(..), Face, Move, Pyraminx, bottomFace, faceColorsCcw, frontFace, leftFace, move, moveB, moveBI, moveGenerator, moveL, moveLI, moveR, moveRI, moveString, moveT, moveTI, problem, rightFace, solved)
 
+import Problem exposing (Problem)
 import Random
 
 
@@ -265,3 +266,16 @@ move pyraminx (Move { direction, inverted }) =
 
     else
         moveDirection pyraminx direction
+
+
+problem : Pyraminx -> Problem ( List Move, Pyraminx )
+problem initialState =
+    { initialState = ( [], initialState )
+    , actions =
+        \( ms, p ) ->
+            [ moveR, moveRI, moveL, moveLI, moveT, moveTI, moveB, moveBI ]
+                |> List.map (\m -> { result = ( ms ++ [ m ], move p m ), stepCost = 1 })
+    , goalTest = \( _, p ) -> p == solved
+    , heuristic = \_ -> 0
+    , stateToString = Debug.toString
+    }
